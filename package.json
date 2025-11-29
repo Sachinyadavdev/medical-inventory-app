@@ -8,6 +8,7 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "dist": "electron-builder",
+    "build:win": "npm run build && electron-builder --win",
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {

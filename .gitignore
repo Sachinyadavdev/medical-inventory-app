@@ -1,1 +1,10 @@
 node_modules
+dist
+out
+*.exe
+*.log
+.DS_Store
+thumbs.db
+*.dmg
+*.rpm
+*.deb
