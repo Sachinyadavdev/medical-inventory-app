@@ -1,0 +1,49 @@
+{
+  "name": "medical-inventory-app",
+  "version": "1.0.0",
+  "description": "Medical Inventory Management System",
+  "main": "out/main/index.js",
+  "scripts": {
+    "start": "electron-vite preview",
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "appId": "com.medical.inventory",
+    "productName": "Medical Inventory",
+    "win": {
+      "target": "nsis"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "chart.js": "^4.0.0",
+    "clsx": "^2.0.0",
+    "jspdf": "^3.0.4",
+    "lucide-react": "^0.290.0",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.0.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.0.0",
+    "tailwind-merge": "^2.0.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^24.0.0",
+    "electron-vite": "^4.0.1",
+    "vite": "^7.2.4"
+  }
+}
