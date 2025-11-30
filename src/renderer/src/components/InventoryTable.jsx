@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Edit, Trash2, Plus } from 'lucide-react'
+import PasswordModal from './PasswordModal'
 
 function InventoryTable({ onEdit, onAdd, filterType, onRefresh }) {
     const [inventory, setInventory] = useState([])
     const [search, setSearch] = useState('')
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
+    const [pendingAction, setPendingAction] = useState(null) // 'import', 'sample', 'export-csv', 'export-pdf'
 
     useEffect(() => {
         loadInventory()
@@ -25,23 +28,38 @@ function InventoryTable({ onEdit, onAdd, filterType, onRefresh }) {
         }
     }
 
-    const handleImport = async () => {
-        const result = await window.electron.ipcRenderer.invoke('import-data')
-        if (result.success) {
-            alert(`Successfully imported ${result.count} items!`)
-            loadInventory()
-        } else if (result.error) {
-            alert(`Import failed: ${result.error}`)
-        }
+    const handleActionClick = (action) => {
+        setPendingAction(action)
+        setIsPasswordModalOpen(true)
     }
 
-    const handleDownloadSample = async () => {
-        const result = await window.electron.ipcRenderer.invoke('download-sample')
-        if (result.success) {
-            alert('Sample file saved successfully!')
-        } else if (result.error) {
-            alert(`Failed to save sample: ${result.error}`)
+    const handlePasswordSubmit = async (password) => {
+        setIsPasswordModalOpen(false)
+        if (password === "Sachin@123") {
+            if (pendingAction === 'import') {
+                const result = await window.electron.ipcRenderer.invoke('import-data')
+                if (result.success) {
+                    alert(`Successfully imported ${result.count} items!`)
+                    loadInventory()
+                } else if (result.error) {
+                    alert(`Import failed: ${result.error}`)
+                }
+            } else if (pendingAction === 'sample') {
+                const result = await window.electron.ipcRenderer.invoke('download-sample')
+                if (result.success) {
+                    alert('Sample file saved successfully!')
+                } else if (result.error) {
+                    alert(`Failed to save sample: ${result.error}`)
+                }
+            } else if (pendingAction === 'export-csv') {
+                await window.electron.ipcRenderer.invoke('export-data', 'csv')
+            } else if (pendingAction === 'export-pdf') {
+                await window.electron.ipcRenderer.invoke('export-data', 'pdf')
+            }
+        } else {
+            alert("Incorrect password!")
         }
+        setPendingAction(null)
     }
 
     const [currentPage, setCurrentPage] = useState(1)
@@ -90,16 +108,16 @@ function InventoryTable({ onEdit, onAdd, filterType, onRefresh }) {
                 <button onClick={onAdd} className="btn btn-primary">
                     <Plus size={16} /> Add Item
                 </button>
-                <button onClick={handleImport} className="btn btn-secondary">
+                <button onClick={() => handleActionClick('import')} className="btn btn-secondary">
                     Import Excel
                 </button>
-                <button onClick={handleDownloadSample} className="btn btn-secondary">
+                <button onClick={() => handleActionClick('sample')} className="btn btn-secondary">
                     Download Sample
                 </button>
-                <button onClick={() => window.electron.ipcRenderer.invoke('export-data', 'csv')} className="btn btn-secondary">
+                <button onClick={() => handleActionClick('export-csv')} className="btn btn-secondary">
                     Export CSV
                 </button>
-                <button onClick={() => window.electron.ipcRenderer.invoke('export-data', 'pdf')} className="btn btn-secondary">
+                <button onClick={() => handleActionClick('export-pdf')} className="btn btn-secondary">
                     Export PDF
                 </button>
                 <button onClick={onRefresh} className="btn btn-secondary">
@@ -164,6 +182,11 @@ function InventoryTable({ onEdit, onAdd, filterType, onRefresh }) {
                     </button>
                 </div>
             </div>
+            <PasswordModal
+                isOpen={isPasswordModalOpen}
+                onClose={() => setIsPasswordModalOpen(false)}
+                onSubmit={handlePasswordSubmit}
+            />
         </div>
     )
 }

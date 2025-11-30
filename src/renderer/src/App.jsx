@@ -44,8 +44,19 @@ function App() {
         }
     }, [isAuthenticated])
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         setIsAuthenticated(true)
+        try {
+            const stats = await window.electron.ipcRenderer.invoke('get-dashboard-stats')
+            if (stats.expired > 0) {
+                // Small delay to ensure the UI renders first, or just alert immediately
+                setTimeout(() => {
+                    alert(`⚠️ Attention: You have ${stats.expired} expired item(s) in your inventory!`)
+                }, 500)
+            }
+        } catch (error) {
+            console.error("Failed to check expired items on login:", error)
+        }
     }
 
     const handleLogout = () => {
@@ -74,12 +85,16 @@ function App() {
         }
         setIsModalOpen(false)
         setRefreshTrigger(prev => prev + 1)
-        window.location.reload()
     }
 
     const handleManualRefresh = () => {
         setActiveFilter('all')
         setRefreshTrigger(prev => prev + 1)
+    }
+
+    const handleBackupClick = () => {
+        setPendingAction('backup')
+        setIsPasswordModalOpen(true)
     }
 
     const handleResetClick = () => {
@@ -120,6 +135,17 @@ function App() {
                 } catch (error) {
                     alert("System Error: " + error.message)
                 }
+            } else if (pendingAction === 'backup') {
+                try {
+                    const result = await window.electron.ipcRenderer.invoke('backup-data')
+                    if (result.success) {
+                        alert("Backup created successfully!")
+                    } else if (result.error) {
+                        alert("Backup failed: " + result.error)
+                    }
+                } catch (error) {
+                    alert("System Error: " + error.message)
+                }
             }
         } else {
             alert("Incorrect password!")
@@ -132,7 +158,7 @@ function App() {
             <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h1>Medical Inventory</h1>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <button onClick={() => window.electron.ipcRenderer.invoke('backup-data')} className="btn btn-secondary">Backup</button>
+                    <button onClick={handleBackupClick} className="btn btn-secondary">Backup</button>
                     <button onClick={handleRestoreClick} className="btn btn-secondary">Restore</button>
                     <button onClick={handleResetClick} className="btn btn-secondary" style={{ backgroundColor: '#dc3545', color: 'white' }}>Reset Data</button>
                     <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
