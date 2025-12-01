@@ -5,8 +5,11 @@ import Dashboard from './components/Dashboard'
 import PasswordModal from './components/PasswordModal'
 import Login from './components/Login'
 
+import SalesDashboard from './components/SalesDashboard'
+
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false)
+    const [currentView, setCurrentView] = useState('inventory') // 'inventory' or 'sales'
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
@@ -156,7 +159,23 @@ function App() {
     return (
         <div className="container">
             <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h1>Medical Inventory</h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <h1>Medical Inventory</h1>
+                    <nav style={{ display: 'flex', gap: '10px' }}>
+                        <button
+                            onClick={() => setCurrentView('inventory')}
+                            className={`btn ${currentView === 'inventory' ? 'btn-primary' : 'btn-secondary'}`}
+                        >
+                            Inventory
+                        </button>
+                        <button
+                            onClick={() => setCurrentView('sales')}
+                            className={`btn ${currentView === 'sales' ? 'btn-primary' : 'btn-secondary'}`}
+                        >
+                            Sales & Profit
+                        </button>
+                    </nav>
+                </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <button onClick={handleBackupClick} className="btn btn-secondary">Backup</button>
                     <button onClick={handleRestoreClick} className="btn btn-secondary">Restore</button>
@@ -165,26 +184,36 @@ function App() {
                 </div>
             </header>
             <main>
-                <Dashboard key={`dash-${refreshTrigger}`} onFilter={setActiveFilter} />
-                <div style={{ marginTop: '2rem' }}>
-                    {activeFilter !== 'all' && (
-                        <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontWeight: 'bold', color: 'var(--primary-color)' }}>
-                                Filter: {activeFilter === 'expired' ? 'Expired Items' : 'Expiring Soon'}
-                            </span>
-                            <button onClick={() => setActiveFilter('all')} className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem' }}>
-                                Clear Filter
-                            </button>
+                {currentView === 'inventory' ? (
+                    <>
+                        <Dashboard key={`dash-${refreshTrigger}`} onFilter={setActiveFilter} />
+                        <div style={{ marginTop: '2rem' }}>
+                            {activeFilter !== 'all' && (
+                                <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span style={{ fontWeight: 'bold', color: 'var(--primary-color)' }}>
+                                        Filter: {
+                                            activeFilter === 'expired' ? 'Expired Items' :
+                                                activeFilter === 'expiring_soon' ? 'Expiring Soon' :
+                                                    activeFilter === 'out_of_stock' ? 'Out of Stock' : ''
+                                        }
+                                    </span>
+                                    <button onClick={() => setActiveFilter('all')} className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem' }}>
+                                        Clear Filter
+                                    </button>
+                                </div>
+                            )}
+                            <InventoryTable
+                                onEdit={handleEdit}
+                                onAdd={handleAdd}
+                                key={`table-${refreshTrigger}`}
+                                filterType={activeFilter}
+                                onRefresh={handleManualRefresh}
+                            />
                         </div>
-                    )}
-                    <InventoryTable
-                        onEdit={handleEdit}
-                        onAdd={handleAdd}
-                        key={`table-${refreshTrigger}`}
-                        filterType={activeFilter}
-                        onRefresh={handleManualRefresh}
-                    />
-                </div>
+                    </>
+                ) : (
+                    <SalesDashboard />
+                )}
             </main>
             {isModalOpen && (
                 <ItemForm

@@ -19,6 +19,17 @@ export function initDatabase() {
       stock_quantity INTEGER DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS sales (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      item_id INTEGER,
+      item_name TEXT NOT NULL,
+      quantity INTEGER NOT NULL,
+      sale_price REAL NOT NULL,
+      total_amount REAL NOT NULL,
+      profit REAL NOT NULL,
+      sale_date TEXT DEFAULT CURRENT_TIMESTAMP
+    );
   `
   db.exec(schema)
 }
@@ -66,8 +77,69 @@ export function getDashboardStats() {
 
   const expired = db.prepare('SELECT COUNT(*) as count FROM inventory WHERE expiry_date < ?').get(today).count
   const expiringSoon = db.prepare('SELECT COUNT(*) as count FROM inventory WHERE expiry_date >= ? AND expiry_date <= ?').get(today, nextThreeMonthsStr).count
+  const outOfStock = db.prepare('SELECT COUNT(*) as count FROM inventory WHERE CAST(COALESCE(stock_quantity, 0) AS INTEGER) = 0').get().count
 
-  return { total, expired, expiringSoon }
+  return { total, expired, expiringSoon, outOfStock }
+}
+
+// --- Sales Module Functions ---
+
+export function addSale(sale) {
+  console.log('Database: addSale called with', sale)
+  // sale object: { item_id, item_name, quantity, sale_price, purchase_price }
+  // Calculate derived values
+  const total_amount = sale.quantity * sale.sale_price
+  const profit = (sale.sale_price - sale.purchase_price) * sale.quantity
+  const sale_date = new Date().toISOString()
+
+  const insertSale = db.prepare(`
+    INSERT INTO sales (item_id, item_name, quantity, sale_price, total_amount, profit, sale_date)
+    VALUES (@item_id, @item_name, @quantity, @sale_price, @total_amount, @profit, @sale_date)
+  `)
+
+  const updateStock = db.prepare(`
+    UPDATE inventory 
+    SET stock_quantity = stock_quantity - @quantity 
+    WHERE id = @item_id
+  `)
+
+  const transaction = db.transaction(() => {
+    const info = insertSale.run({ ...sale, total_amount, profit, sale_date })
+    console.log('Database: Sale inserted, changes:', info.changes)
+    const stockInfo = updateStock.run({ quantity: sale.quantity, item_id: sale.item_id })
+    console.log('Database: Stock updated, changes:', stockInfo.changes)
+  })
+
+  return transaction()
+}
+
+export function getSales(filter = 'all') {
+  console.log('Database: getSales called')
+  let query = 'SELECT * FROM sales ORDER BY sale_date DESC'
+  // We can add date filtering logic here later if needed
+  const results = db.prepare(query).all()
+  console.log(`Database: getSales returned ${results.length} records`)
+  return results
+}
+
+export function getSalesStats() {
+  console.log('Database: getSalesStats called')
+  const today = new Date().toISOString().split('T')[0]
+  const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+  const startOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]
+
+  // Use 'localtime' modifier to match user's local day
+  const daily = db.prepare("SELECT SUM(profit) as profit, SUM(total_amount) as revenue FROM sales WHERE date(sale_date, 'localtime') = date('now', 'localtime')").get()
+  const monthly = db.prepare("SELECT SUM(profit) as profit, SUM(total_amount) as revenue FROM sales WHERE date(sale_date, 'localtime') >= date(?, 'start of month')").get(today)
+  const yearly = db.prepare("SELECT SUM(profit) as profit, SUM(total_amount) as revenue FROM sales WHERE date(sale_date, 'localtime') >= date(?, 'start of year')").get(today)
+
+  console.log('Database: Stats calculated', { daily, monthly, yearly })
+
+  return {
+    daily: daily || { profit: 0, revenue: 0 },
+    monthly: monthly || { profit: 0, revenue: 0 },
+    yearly: yearly || { profit: 0, revenue: 0 }
+  }
 }
 
 export function importItems(items) {
@@ -84,12 +156,19 @@ export function importItems(items) {
 }
 
 export function clearInventory() {
-  const deleteStmt = db.prepare('DELETE FROM inventory')
-  const resetSeqStmt = db.prepare("DELETE FROM sqlite_sequence WHERE name='inventory'")
+  console.log('Database: clearInventory called - Deleting Inventory AND Sales')
+  const deleteInventory = db.prepare('DELETE FROM inventory')
+  const deleteSales = db.prepare('DELETE FROM sales')
+  const resetSeqInventory = db.prepare("DELETE FROM sqlite_sequence WHERE name='inventory'")
+  const resetSeqSales = db.prepare("DELETE FROM sqlite_sequence WHERE name='sales'")
   
   const transaction = db.transaction(() => {
-    deleteStmt.run()
-    resetSeqStmt.run()
+    const invInfo = deleteInventory.run()
+    console.log('Database: Inventory deleted, changes:', invInfo.changes)
+    const salesInfo = deleteSales.run()
+    console.log('Database: Sales deleted, changes:', salesInfo.changes)
+    resetSeqInventory.run()
+    resetSeqSales.run()
   })
   
   return transaction()

@@ -80,6 +80,9 @@ function InventoryTable({ onEdit, onAdd, filterType, onRefresh }) {
             return item.expiry_date < today
         } else if (filterType === 'expiring_soon') {
             return item.expiry_date >= today && item.expiry_date <= nextThreeMonthsStr
+        } else if (filterType === 'out_of_stock') {
+            const stock = Number(item.stock_quantity || 0)
+            return stock === 0
         }
 
         return true

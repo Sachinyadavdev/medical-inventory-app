@@ -38,36 +38,36 @@ function ItemForm({ item, onClose, onSave }) {
                 <form onSubmit={handleSubmit} className="item-form">
                     <div className="form-group">
                         <label>Item Name</label>
-                        <input name="item_name" value={formData.item_name} onChange={handleChange} required />
+                        <input name="item_name" value={formData.item_name || ''} onChange={handleChange} required autoFocus />
                     </div>
                     <div className="form-row">
                         <div className="form-group">
                             <label>Batch No</label>
-                            <input name="batch_no" value={formData.batch_no} onChange={handleChange} />
+                            <input name="batch_no" value={formData.batch_no || ''} onChange={handleChange} />
                         </div>
                         <div className="form-group">
                             <label>Expiry Date</label>
-                            <input type="date" name="expiry_date" value={formData.expiry_date} onChange={handleChange} />
+                            <input type="date" name="expiry_date" value={formData.expiry_date || ''} onChange={handleChange} />
                         </div>
                     </div>
                     <div className="form-row">
                         <div className="form-group">
                             <label>MRP</label>
-                            <input type="number" step="0.01" name="mrp" value={formData.mrp} onChange={handleChange} />
+                            <input type="number" step="0.01" name="mrp" value={formData.mrp || ''} onChange={handleChange} />
                         </div>
                         <div className="form-group">
                             <label>Purchase Price</label>
-                            <input type="number" step="0.01" name="purchase_price" value={formData.purchase_price} onChange={handleChange} />
+                            <input type="number" step="0.01" name="purchase_price" value={formData.purchase_price || ''} onChange={handleChange} />
                         </div>
                     </div>
                     <div className="form-row">
                         <div className="form-group">
                             <label>Net Price</label>
-                            <input type="number" step="0.01" name="net_price" value={formData.net_price} onChange={handleChange} />
+                            <input type="number" step="0.01" name="net_price" value={formData.net_price || ''} onChange={handleChange} />
                         </div>
                         <div className="form-group">
                             <label>Stock Quantity</label>
-                            <input type="number" name="stock_quantity" value={formData.stock_quantity} onChange={handleChange} />
+                            <input type="number" name="stock_quantity" value={formData.stock_quantity || ''} onChange={handleChange} />
                         </div>
                     </div>
                     <div className="form-actions">

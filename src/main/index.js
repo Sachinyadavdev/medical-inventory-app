@@ -1,6 +1,10 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
-import { initDatabase, getInventory, addItem, updateItem, deleteItem, getDashboardStats, getDbPath, importItems, clearInventory } from './database'
+import { 
+  initDatabase, getInventory, addItem, updateItem, deleteItem, getDashboardStats, 
+  getDbPath, importItems, clearInventory,
+  addSale, getSales, getSalesStats 
+} from './database'
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -66,6 +70,20 @@ app.whenReady().then(() => {
   ipcMain.handle('get-dashboard-stats', () => {
     return getDashboardStats()
   })
+
+  // --- Sales IPC ---
+  ipcMain.handle('add-sale', (event, sale) => {
+    return addSale(sale)
+  })
+
+  ipcMain.handle('get-sales', () => {
+    return getSales()
+  })
+
+  ipcMain.handle('get-sales-stats', () => {
+    return getSalesStats()
+  })
+  // ----------------
 
   ipcMain.handle('export-data', async (event, format) => {
     const { dialog } = require('electron')
