@@ -8,9 +8,29 @@ function AddSaleForm({ onClose, onSaleAdded }) {
     const [quantity, setQuantity] = useState(1)
     const [salePrice, setSalePrice] = useState(0)
 
+    const searchInputRef = React.useRef(null)
+    const quantityInputRef = React.useRef(null)
+
     useEffect(() => {
         loadInventory()
+        // Focus search input on mount
+        setTimeout(() => {
+            if (searchInputRef.current) {
+                searchInputRef.current.focus()
+            }
+        }, 100)
     }, [])
+
+    useEffect(() => {
+        // Focus quantity input when item is selected
+        if (selectedItem) {
+            setTimeout(() => {
+                if (quantityInputRef.current) {
+                    quantityInputRef.current.focus()
+                }
+            }, 100)
+        }
+    }, [selectedItem])
 
     const loadInventory = async () => {
         const items = await window.electron.ipcRenderer.invoke('get-inventory')
@@ -70,12 +90,12 @@ function AddSaleForm({ onClose, onSaleAdded }) {
                     <div className="item-selection">
                         <div className="search-box" style={{ marginBottom: '1rem' }}>
                             <input
+                                ref={searchInputRef}
                                 type="text"
                                 placeholder="Search item to sell..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="search-input"
-                                autoFocus
                             />
                         </div>
                         <div className="item-list" style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
@@ -110,13 +130,13 @@ function AddSaleForm({ onClose, onSaleAdded }) {
                         <div className="form-group">
                             <label>Quantity</label>
                             <input
+                                ref={quantityInputRef}
                                 type="number"
                                 min="1"
                                 max={selectedItem.stock_quantity}
                                 value={quantity}
                                 onChange={(e) => setQuantity(e.target.value)}
                                 required
-                                autoFocus
                             />
                         </div>
 

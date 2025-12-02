@@ -1,10 +1,21 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Lock, User } from 'lucide-react'
 
 function Login({ onLogin }) {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
+
+    const usernameInputRef = React.useRef(null)
+
+    useEffect(() => {
+        // Force focus on username field when login screen appears
+        setTimeout(() => {
+            if (usernameInputRef.current) {
+                usernameInputRef.current.focus()
+            }
+        }, 100)
+    }, [])
 
     const handleSubmit = (e) => {
         e.preventDefault()
@@ -35,6 +46,7 @@ function Login({ onLogin }) {
                         <div style={{ position: 'relative' }}>
                             <User size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-color)' }} />
                             <input
+                                ref={usernameInputRef}
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}

@@ -1,8 +1,19 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 
 function PasswordModal({ isOpen, onClose, onSubmit }) {
     const [password, setPassword] = useState('')
+    const passwordInputRef = React.useRef(null)
+
+    useEffect(() => {
+        if (isOpen) {
+            setTimeout(() => {
+                if (passwordInputRef.current) {
+                    passwordInputRef.current.focus()
+                }
+            }, 100)
+        }
+    }, [isOpen])
 
     if (!isOpen) return null
 
@@ -23,12 +34,12 @@ function PasswordModal({ isOpen, onClose, onSubmit }) {
                     <div className="form-group">
                         <label>Enter Password</label>
                         <input
+                            ref={passwordInputRef}
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Enter admin password"
                             required
-                            autoFocus
                         />
                     </div>
                     <div className="form-actions">

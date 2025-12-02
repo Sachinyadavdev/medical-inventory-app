@@ -12,10 +12,18 @@ function ItemForm({ item, onClose, onSave }) {
         stock_quantity: ''
     })
 
+    const nameInputRef = React.useRef(null)
+
     useEffect(() => {
         if (item) {
             setFormData(item)
         }
+        // Explicitly focus the input after a short delay to ensure modal is rendered
+        setTimeout(() => {
+            if (nameInputRef.current) {
+                nameInputRef.current.focus()
+            }
+        }, 100)
     }, [item])
 
     const handleChange = (e) => {
@@ -38,7 +46,13 @@ function ItemForm({ item, onClose, onSave }) {
                 <form onSubmit={handleSubmit} className="item-form">
                     <div className="form-group">
                         <label>Item Name</label>
-                        <input name="item_name" value={formData.item_name || ''} onChange={handleChange} required autoFocus />
+                        <input
+                            ref={nameInputRef}
+                            name="item_name"
+                            value={formData.item_name || ''}
+                            onChange={handleChange}
+                            required
+                        />
                     </div>
                     <div className="form-row">
                         <div className="form-group">

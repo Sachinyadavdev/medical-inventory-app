@@ -10,18 +10,26 @@ function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    show: false,
+    show: true, // Show immediately to force Windows activation
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      backgroundThrottling: false // Prevent Windows from throttling inputs when "inactive"
     }
   })
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+  // Remove the menu bar completely to prevent focus stealing
+  mainWindow.setMenu(null)
+
+  // Force focus immediately after window is created
+  mainWindow.focus()
+  
+  // Force focus to webContents when window gets focus
+  mainWindow.on('focus', () => {
+    mainWindow.webContents.focus()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -34,6 +42,14 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+  
+  // Force focus again after content loads
+  mainWindow.webContents.on('did-finish-load', () => {
+    setTimeout(() => {
+      mainWindow.focus()
+      mainWindow.webContents.focus()
+    }, 100)
+  })
 }
 
 app.whenReady().then(() => {

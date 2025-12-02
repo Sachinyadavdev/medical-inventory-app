@@ -1,15 +1,10 @@
 :root {
   --primary-color: #4f46e5;
-  /* Indigo 600 */
   --secondary-color: #64748b;
-  /* Slate 500 */
   --danger-color: #ef4444;
-  /* Red 500 */
   --background-color: #f1f5f9;
-  /* Slate 100 */
   --surface-color: rgba(255, 255, 255, 0.7);
   --text-color: #1e293b;
-  /* Slate 800 */
   --border-color: rgba(255, 255, 255, 0.5);
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
 }
@@ -39,8 +34,7 @@ body {
 }
 
 /* Glassmorphism Card */
-.inventory-container,
-.modal-content {
+.inventory-container {
   background: var(--surface-color);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -137,11 +131,18 @@ body {
   flex: 1;
 }
 
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
 input {
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #cbd5e1;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 input:focus {
@@ -169,6 +170,14 @@ input:focus {
   width: 100%;
   max-width: 500px;
   background: white;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--glass-shadow);
+  padding: 20px;
+  position: relative;
+  z-index: 1001;
 }
 
 .modal-header {

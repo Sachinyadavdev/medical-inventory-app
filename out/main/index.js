@@ -148,17 +148,22 @@ function createWindow() {
   const mainWindow = new electron.BrowserWindow({
     width: 1200,
     height: 800,
-    show: false,
+    show: true,
+    // Show immediately to force Windows activation
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, "../preload/index.js"),
       sandbox: false,
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      backgroundThrottling: false
+      // Prevent Windows from throttling inputs when "inactive"
     }
   });
-  mainWindow.on("ready-to-show", () => {
-    mainWindow.show();
+  mainWindow.setMenu(null);
+  mainWindow.focus();
+  mainWindow.on("focus", () => {
+    mainWindow.webContents.focus();
   });
   mainWindow.webContents.setWindowOpenHandler((details) => {
     electron.shell.openExternal(details.url);
@@ -169,6 +174,12 @@ function createWindow() {
   } else {
     mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
   }
+  mainWindow.webContents.on("did-finish-load", () => {
+    setTimeout(() => {
+      mainWindow.focus();
+      mainWindow.webContents.focus();
+    }, 100);
+  });
 }
 electron.app.whenReady().then(() => {
   initDatabase();
